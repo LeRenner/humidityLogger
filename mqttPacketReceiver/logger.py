@@ -16,14 +16,14 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 # InfluxDB credentials
-INFLUXDB_URL = "http://influxdb:8086"
-INFLUXDB_TOKEN = "TOKEN"
-INFLUXDB_ORG = "ORG"
-INFLUXDB_BUCKET = "BUCKET"
+INFLUXDB_URL = "http://localhost:8086"
+INFLUXDB_TOKEN = open("/secrets/token", "r").read().strip()
+INFLUXDB_ORG = open("/secrets/org", "r").read().strip()
+INFLUXDB_BUCKET = open("/secrets/bucket", "r").read().strip()
 
 # MQTT credentials
-MQTT_BROKER = "mosquitto"
-MQTT_PORT = 1883
+MQTT_BROKER = open("/config/hostname", "r").read().strip()
+MQTT_PORT = open("/config/port", "r").read().strip()
 
 # MQTT topics
 TEMPERATURE_TOPIC = "dht22/temperature"
