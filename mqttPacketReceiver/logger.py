@@ -22,12 +22,13 @@ INFLUXDB_ORG = open("/secrets/org", "r").read().strip()
 INFLUXDB_BUCKET = open("/secrets/bucket", "r").read().strip()
 
 # MQTT credentials
-MQTT_BROKER = open("/config/hostname", "r").read().strip()
-MQTT_PORT = open("/config/port", "r").read().strip()
+config = open("/config/main.txt", "r").readLines()
+MQTT_BROKER = config[0].strip()
+MQTT_PORT = int(config[1].strip())
 
 # MQTT topics
-TEMPERATURE_TOPIC = "dht22/temperature"
-HUMIDITY_TOPIC = "dht22/humidity"
+# topics look like this: "sensor/kind"
+topicList = config[2].strip().split(",")
 
 # InfluxDB client
 influxdb_client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
@@ -35,26 +36,24 @@ influxdb_client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INF
 
 def on_connect(client, userdata, flags, rc):
     if verbose: print("Connected to MQTT broker with result code " + str(rc))
-    client.subscribe([(TEMPERATURE_TOPIC, 0), (HUMIDITY_TOPIC, 0)])
+    for topic in topicList:
+        client.subscribe(topic)
+        if verbose: print("Subscribed to topic: " + topic)
 
 
 def on_message(client, userdata, msg):
     if verbose: print("Received message on topic: " + msg.topic + " with payload: " + msg.payload.decode())
     try:
-        if msg.topic == TEMPERATURE_TOPIC:
-            value_type = "temperature"
-        elif msg.topic == HUMIDITY_TOPIC:
-            value_type = "humidity"
-        else:
-            return
-
         # Parse the value from the message payload
         value = float(msg.payload)
 
-        # Write the data to InfluxDB
+        # Parse the value type from the topic
+        value_type = msg.topic.split("/")[1]
+
+        # Create a new InfluxDB point
+        point = Point(value_type).field("value", value)
         write_api = influxdb_client.write_api(write_options=SYNCHRONOUS)
-        point = Point("dht22").tag("sensor", "dht22").field(value_type, value)
-        write_api.write(bucket=INFLUXDB_BUCKET, record=point)
+        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
 
         if verbose: print("Data logged to InfluxDB: ", value_type, value)
     except Exception as e:
