@@ -2,8 +2,11 @@
 
 #check for -v flag
 import sys
+sys.stdout = sys.stderr
+
 if len(sys.argv) > 1:
     if sys.argv[1] == "-v":
+        # print to stderror
         print("Verbose mode enabled")
         verbose = True
 else:
@@ -42,9 +45,6 @@ if verbose:
     print("MQTT broker: ", MQTT_BROKER)
     print("MQTT port: ", MQTT_PORT)
     print("MQTT topics: ", topicList)
-
-while True:
-    pass
 
 
 def on_connect(client, userdata, flags, rc):
