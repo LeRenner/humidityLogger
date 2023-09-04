@@ -22,7 +22,7 @@ INFLUXDB_ORG = open("/secrets/org", "r").read().strip()
 INFLUXDB_BUCKET = open("/secrets/bucket", "r").read().strip()
 
 # MQTT credentials
-config = open("/config/main.txt", "r").readLines()
+config = open("/config/main.txt", "r").readlines()
 MQTT_BROKER = config[0].strip()
 MQTT_PORT = int(config[1].strip())
 
@@ -32,6 +32,19 @@ topicList = config[2].strip().split(",")
 
 # InfluxDB client
 influxdb_client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+
+if verbose:
+    # print all read information
+    print("InfluxDB URL: ", INFLUXDB_URL)
+    print("InfluxDB token: ", INFLUXDB_TOKEN)
+    print("InfluxDB org: ", INFLUXDB_ORG)
+    print("InfluxDB bucket: ", INFLUXDB_BUCKET)
+    print("MQTT broker: ", MQTT_BROKER)
+    print("MQTT port: ", MQTT_PORT)
+    print("MQTT topics: ", topicList)
+
+while True:
+    pass
 
 
 def on_connect(client, userdata, flags, rc):
