@@ -55,22 +55,27 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    if verbose: print("Received message on topic: " + msg.topic + " with payload: " + msg.payload.decode())
+    if verbose: print("Received message on topic " + msg.topic + " with QoS " + str(msg.qos))
     try:
         # Parse the value from the message payload
         value = float(msg.payload)
+        topic = msg.topic
 
-        # Parse the value type from the topic
-        value_type = msg.topic.split("/")[1]
+        parts = topic.split("/")
+        location, kind_of_measurement = parts
 
-        # Create a new InfluxDB point
-        point = Point(value_type).field("value", value)
+        point = Point(kind_of_measurement) \
+            .tag("location", location) \
+            .field("value", value)
+
         write_api = influxdb_client.write_api(write_options=SYNCHRONOUS)
-        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
+        write_api.write(bucket="pudim", record=point)
 
-        if verbose: print("Data logged to InfluxDB: ", value_type, value)
     except Exception as e:
         print("Error logging data to InfluxDB: ", e)
+
+# Replace the URL, token, org, and bucket with your InfluxDB configuration.
+
 
 
 def main():
